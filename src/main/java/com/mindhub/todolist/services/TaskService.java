@@ -7,13 +7,13 @@ import com.mindhub.todolist.models.Task;
 import java.util.Set;
 
 public interface TaskService {
-    Task getTaskById(Long id);
+    Task getUserTaskById(Long id, String name);
 
     void deleteTask(Long id);
 
-    void createTask(NewTaskRecord task);
+    void createTask(NewTaskRecord task, String name);
 
-    Set<TaskDTO> getAllTasks();
+    Set<TaskDTO> getAllUserTasks(String name);
 
     void updateTask(Long id, NewTaskRecord newTaskRecord);
 }

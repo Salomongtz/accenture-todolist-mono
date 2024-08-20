@@ -17,27 +17,39 @@ import java.util.stream.Collectors;
 @Service
 public class TaskServiceImplementation implements TaskService {
     @Autowired
-    TaskRepository taskRepository;
+    private TaskRepository taskRepository;
     @Autowired
-    UserRepository userRepository;
+    private UserRepository userRepository;
 
     @Override
-    public void createTask(NewTaskRecord newTaskRecord) {
+    public void createTask(NewTaskRecord newTaskRecord, String username) {
         Task task = new Task(newTaskRecord.title(), newTaskRecord.description(), newTaskRecord.status());
-        UserEntity user = userRepository.findById(1L).orElse(null);
-        assert user != null;
+        UserEntity user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not " +
+                "found"));
         user.addTask(task);
-        taskRepository.save(task);
+        try {
+            taskRepository.save(task);
+        } catch (Exception e) {
+            throw new RuntimeException("Error creating task", e);
+        }
     }
 
     @Override
-    public Task getTaskById(Long id) {
-        return taskRepository.findById(id).orElse(null);
+    public Task getUserTaskById(Long id, String name) {
+        UserEntity user = userRepository.findByUsername(name).orElseThrow(() -> new RuntimeException("User not found"));
+        if (user.getTasks().stream().noneMatch(task -> task.getId().equals(id))) {
+            throw new IllegalArgumentException("The task doesn't exist");
+        }
+        return user.getTasks().stream().filter(task -> task.getId().equals(id)).findFirst().orElse(null);
     }
 
     @Override
-    public Set<TaskDTO> getAllTasks() {
-        return new HashSet<>(taskRepository.findAll()).stream().map(TaskDTO::new).collect(Collectors.toSet());
+    public Set<TaskDTO> getAllUserTasks(String name) {
+        UserEntity user = userRepository.findByUsername(name).orElseThrow(() -> new RuntimeException("User not found"));
+        if (user.getTasks().isEmpty()) {
+            throw new IllegalArgumentException("The user doesn't have tasks");
+        }
+        return user.getTasks().stream().map(TaskDTO::new).collect(Collectors.toSet());
     }
 
     @Override

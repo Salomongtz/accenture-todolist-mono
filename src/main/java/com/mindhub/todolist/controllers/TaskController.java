@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Set;
@@ -20,28 +21,34 @@ import java.util.Set;
 @RequestMapping("/task")
 public class TaskController {
     @Autowired
-    TaskService taskService;
+    private TaskService taskService;
 
     @PostMapping
-    @Operation(summary = "Creates a new task.", tags = "Task")
+    @Operation(summary = "Creates a new task for current user.", tags = "Task")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "The task was created successfully.", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = TaskDTO.class))
             })
     })
-    public ResponseEntity<?> createTask(@RequestBody NewTaskRecord task) {
-        taskService.createTask(task);
-        return ResponseEntity.status(201).body(task);
+    public ResponseEntity<?> createTask(@RequestBody NewTaskRecord task, Authentication authentication) {
+        if (task == null) {
+            return ResponseEntity.badRequest().body("The task cannot be null.");
+        }
+        if (task.title().isEmpty() || task.title().isBlank()) {
+            return ResponseEntity.badRequest().body("The title cannot be empty.");
+        }
+        if (task.description().isEmpty() || task.description().isBlank()) {
+            return ResponseEntity.badRequest().body("The description cannot be empty.");
+        }
+        if (task.status() == null) {
+            return ResponseEntity.badRequest().body("The status cannot be null.");
+        }
+        taskService.createTask(task, authentication.getName());
+        return ResponseEntity.status(201).body("Task created successfully." + task);
     }
 
-    /**
-     * Retrieves a task by its ID.
-     *
-     * @param id The ID of the task to retrieve.
-     * @return A ResponseEntity containing the TaskDTO of the task if found, or a 404 Not Found response if not found.
-     */
     @GetMapping("{id}")
-    @Operation(summary = "Retrieves a task by its ID.", tags = "Task")
+    @Operation(summary = "Retrieves a task from current user by its ID.", tags = "Task")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "The TaskDTO of the task if found.", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = TaskDTO.class))
@@ -49,8 +56,11 @@ public class TaskController {
             @ApiResponse(responseCode = "404", description = "The task was not found.")
     })
     public ResponseEntity<?> getTask(@RequestParam @Parameter(description = "The ID of the task to retrieve.",
-            required = true) Long id) {
-        Task task = taskService.getTaskById(id);
+            required = true) Long id, Authentication authentication) {
+        if (id == null || id == 0 || id < 0) {
+            return ResponseEntity.badRequest().body("The ID cannot be null, negative or 0.");
+        }
+        Task task = taskService.getUserTaskById(id, authentication.getName());
         if (task != null) {
             return ResponseEntity.ok(new TaskDTO(task));
         }
@@ -58,14 +68,14 @@ public class TaskController {
     }
 
     @GetMapping("all")
-    @Operation(summary = "Retrieves all tasks.", tags = "Task")
+    @Operation(summary = "Retrieves all tasks from current user.", tags = "Task")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "The TaskDTOs of all tasks.", content = {
+            @ApiResponse(responseCode = "200", description = "The TaskDTOs from the user.", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = TaskDTO.class))
             })
     })
-    public Set<TaskDTO> getAllTasks() {
-        return taskService.getAllTasks();
+    public ResponseEntity<?> getAllTasks(Authentication authentication) {
+        return ResponseEntity.ok().body(taskService.getAllUserTasks(authentication.getName()));
     }
 
     @PutMapping("{id}")
@@ -77,10 +87,22 @@ public class TaskController {
             @ApiResponse(responseCode = "404", description = "The task was not found.")
     })
     public ResponseEntity<?> updateTask(@RequestParam @Parameter(description = "The ID of the task to update.",
-            required = true) Long id, @RequestBody NewTaskRecord newTaskRecord) {
-        if (taskService.getTaskById(id) != null) {
+            required = true) Long id, @RequestBody NewTaskRecord newTaskRecord, Authentication authentication) {
+        if (newTaskRecord == null) {
+            return ResponseEntity.badRequest().body("The task cannot be null.");
+        }
+        if (newTaskRecord.title().isEmpty() || newTaskRecord.title().isBlank()) {
+            return ResponseEntity.badRequest().body("The title cannot be empty.");
+        }
+        if (newTaskRecord.description().isEmpty() || newTaskRecord.description().isBlank()) {
+            return ResponseEntity.badRequest().body("The description cannot be empty.");
+        }
+        if (newTaskRecord.status() == null) {
+            return ResponseEntity.badRequest().body("The status cannot be null.");
+        }
+        if (taskService.getUserTaskById(id, authentication.getName()) != null) {
             taskService.updateTask(id, newTaskRecord);
-            return ResponseEntity.ok(new TaskDTO(taskService.getTaskById(id)));
+            return ResponseEntity.ok(new TaskDTO(taskService.getUserTaskById(id, authentication.getName())));
         }
         return ResponseEntity.notFound().build();
     }
@@ -92,8 +114,11 @@ public class TaskController {
             @ApiResponse(responseCode = "404", description = "The task was not found.")
     })
     public ResponseEntity<?> deleteTask(@RequestParam @Parameter(description = "The ID of the task to delete.",
-            required = true) Long id) {
-        if (taskService.getTaskById(id) != null) {
+            required = true) Long id, Authentication authentication) {
+        if (id == null || id == 0 || id < 0) {
+            return ResponseEntity.badRequest().body("The ID cannot be null, negative or 0.");
+        }
+        if (taskService.getUserTaskById(id, authentication.getName()) != null) {
             taskService.deleteTask(id);
             return ResponseEntity.noContent().build();
         }
