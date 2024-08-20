@@ -22,17 +22,17 @@ public class UserServiceImplementation implements UserService {
         return userRepository.findById(id).orElse(null);
     }
 
-    public Set<UserEntity> getAllUsers(String name) {
+    public Set<UserEntity> getAllUsers() {
         return new HashSet<>(userRepository.findAll());
     }
 
     @Override
-    public UserEntity getAuthenticatedUser(String name) {
-        if(name == null || name.isBlank()|| name.isEmpty()) {
+    public UserEntity getAuthenticatedUser(String username) {
+        if(username == null || username.isBlank()|| username.isEmpty()) {
             throw new IllegalArgumentException("Name cannot be null");
         }
-        if (userRepository.findByUsername(name).isPresent()) {
-            return userRepository.findByUsername(name).get();
+        if (userRepository.findByUsername(username).isPresent()) {
+            return userRepository.findByUsername(username).get();
         }
         return null;
     }

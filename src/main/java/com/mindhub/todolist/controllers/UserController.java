@@ -32,8 +32,8 @@ public class UserController {
             }),
             @ApiResponse(responseCode = "404", description = "No users found.")
     })
-    public ResponseEntity<?> getAllUsers(Authentication authentication) {
-        Set<UserEntity> users = userService.getAllUsers(authentication.getName());
+    public ResponseEntity<?> getAllUsers() {
+        Set<UserEntity> users = userService.getAllUsers();
         return users.isEmpty() ? ResponseEntity.notFound().build() : ResponseEntity.ok(users);
     }
 

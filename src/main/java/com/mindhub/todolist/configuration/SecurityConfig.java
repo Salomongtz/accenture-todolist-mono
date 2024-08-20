@@ -39,7 +39,7 @@ public class SecurityConfig {
                 )
                 .formLogin(AbstractHttpConfigurer::disable) // Disable form-based authentication
                 .httpBasic(AbstractHttpConfigurer::disable) // Disable HTTP Basic authentication
-                .addFilterBefore(new JwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class) // Add
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class) // Add
                 // JWT filter before standard authentication filter
                 .headers(headers -> headers
                         .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin) // Allow H2 frames

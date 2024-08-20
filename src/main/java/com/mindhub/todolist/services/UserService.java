@@ -8,7 +8,7 @@ import java.util.Set;
 public interface UserService {
     void registerUser(NewUserRecord newUserRecord);
 
-    Set<UserEntity> getAllUsers(String name);
+    Set<UserEntity> getAllUsers();
 
-    UserEntity getAuthenticatedUser(String name);
+    UserEntity getAuthenticatedUser(String username);
 }
