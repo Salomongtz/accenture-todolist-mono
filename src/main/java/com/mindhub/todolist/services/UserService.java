@@ -9,6 +9,7 @@ public interface UserService {
     void registerUser(NewUserRecord newUserRecord);
 
     Set<UserEntity> getAllUsers();
+    UserEntity getUserByEmail(String email);
 
     UserEntity getAuthenticatedUser(String username);
 }
