@@ -19,12 +19,12 @@ public class Utils {
     @Bean
     public CommandLineRunner commandLineRunner(UserRepository userRepository, TaskRepository taskRepository) {
         return args -> {
-            UserEntity user = new UserEntity("Melba", bcryptPasswordEncoder.encode("1234"), "melba@mindhub.com", "melba123");
-            user.setRole(RoleType.ADMIN);
-            userRepository.save(user);
-            Task task = new Task("Tarea 1", "Tarea de prueba", TaskStatus.PENDING);
-            user.addTask(task);
-            taskRepository.save(task);
+//            UserEntity user = new UserEntity("Melba", bcryptPasswordEncoder.encode("1234"), "melba@mindhub.com", "melba123");
+//            user.setRole(RoleType.ADMIN);
+//            userRepository.save(user);
+//            Task task = new Task("Tarea 1", "Tarea de prueba", TaskStatus.PENDING);
+//            user.addTask(task);
+//            taskRepository.save(task);
         };
     }
 
